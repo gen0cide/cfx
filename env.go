@@ -55,15 +55,58 @@ const (
 	_defaultConfigDir = "config"
 
 	// define a default environment
-	_defaultEnv = EnvDevelopment
+	_defaultEnv = EnvID("development")
+
+	_nilEnv = EnvID("")
 )
+
+// EnvID represents a specific environment identifier within the application.
+type EnvID string
+
+// String implements the fmt.Stringer interface.
+func (e EnvID) String() string {
+	return string(e)
+}
+
+// ParseEnv is used to parse an environment string to determine if it's valid.
+// Environment strings should be lowercase alphanumeric, between 2 and 64 characters in length.
+// No special characters. If you attempt to pass an empty env to this function, it will return
+// the default environment (development).
+func ParseEnv(v string) (EnvID, error) {
+	// empty, return default
+	if v == "" {
+		return _defaultEnv, nil
+	}
+
+	// check for max length
+	if len(v) > 64 {
+		return _nilEnv, fmt.Errorf("environment identifier must not be longer than 64 characters")
+	}
+
+	// check for min length
+	if len(v) < 2 {
+		return _nilEnv, fmt.Errorf("environment identifier must be longer than 2 characters")
+	}
+
+	for _, c := range v {
+		if !validEnvLetter(c) {
+			return _nilEnv, fmt.Errorf("environment identifier contains invalid characters, must be only lowercase alpha numeric")
+		}
+	}
+
+	return EnvID(v), nil
+}
+
+func validEnvLetter(c rune) bool {
+	return ('a' <= c && c <= 'z') || ('0' <= c && c <= '9')
+}
 
 // EnvContext is a type that holds information about the current running application, including
 // several properties that can be configured via ENVIRONMENT VARIABLES. This is useful for environment
 // aware applications to make decisions based upon where they might be executing.
 type EnvContext struct {
 	// Environment is the primary identifier about what the environment we're running in.
-	Environment Env
+	Environment EnvID
 
 	// AppPath is the directory that the app can consider it's base working directory.
 	// If no value is defined in an ENV_VAR, the app will use the current working directory

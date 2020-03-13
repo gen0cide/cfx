@@ -58,7 +58,7 @@ func NewConfig(env EnvContext) (Container, error) {
 	}
 
 	// resolve the ${environment}.yaml
-	envcfg, err := resolveConfig(env.ConfigPath, env.Environment.Name())
+	envcfg, err := resolveConfig(env.ConfigPath, env.Environment.String())
 	if err != nil {
 		return ret, err
 	}
